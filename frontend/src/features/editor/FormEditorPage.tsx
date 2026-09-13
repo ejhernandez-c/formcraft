@@ -1,16 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 
-import { Button } from '@/components/ui/button'
-import { Canvas } from '@/features/builder/Canvas'
-import type { Selection } from '@/features/builder/Canvas'
-import { ComponentPalette } from '@/features/builder/ComponentPalette'
-import type { ControlDefinition } from '@/features/builder/controlTypes'
-import { defaultSettingsFor } from '@/features/builder/controlTypes'
-import { PreviewDialog } from '@/features/builder/PreviewDialog'
-import { PropertiesPanel } from '@/features/builder/PropertiesPanel'
 import { useAuth } from '@/features/auth/AuthContext'
+import { PreviewDialog } from '@/features/builder/PreviewDialog'
+import { EditorNavbar } from '@/features/editor/EditorNavbar'
+import { EditorTabs, useEditorTab } from '@/features/editor/EditorTabs'
+import { QuestionsTab } from '@/features/editor/QuestionsTab'
+import { ResponsesTabPlaceholder } from '@/features/editor/ResponsesTabPlaceholder'
+import { SettingsTab } from '@/features/editor/SettingsTab'
 import { t } from '@/i18n'
 import type {
   FormElement,
@@ -30,24 +28,23 @@ import {
   updateElement,
   updateSection,
 } from '@/services/formBuilder'
+import { getForm, updateForm } from '@/services/forms'
 
-export function BuilderPage() {
+export function FormEditorPage() {
   const { id } = useParams<{ id: string }>()
   const formId = id as string
   const { token } = useAuth()
   const queryClient = useQueryClient()
+  const activeTab = useEditorTab()
   const [searchParams] = useSearchParams()
-
-  const [selection, setSelection] = useState<Selection>(null)
-  // Only tracks an *explicit* user choice — falls back to the first section
-  // below so a freshly loaded form doesn't need a synced effect just to
-  // pick a default target section.
-  const [explicitActiveSectionId, setExplicitActiveSectionId] = useState<string | null>(null)
-  // Lazily seeded from ?preview=1 (the dashboard's "Vista previa" shortcut)
-  // so it opens immediately without a synced effect.
   const [previewOpen, setPreviewOpen] = useState(() => searchParams.get('preview') === '1')
   const createdFirstSection = useRef(false)
 
+  const formQuery = useQuery({
+    queryKey: ['forms', formId],
+    queryFn: () => getForm(token as string, formId),
+    enabled: Boolean(token),
+  })
   const sectionsQuery = useQuery({
     queryKey: ['builder', formId, 'sections'],
     queryFn: () => listSections(token as string, formId),
@@ -59,61 +56,73 @@ export function BuilderPage() {
     enabled: Boolean(token),
   })
 
-  const invalidate = (): void => {
+  const invalidateBuilder = (): void => {
     queryClient.invalidateQueries({ queryKey: ['builder', formId, 'sections'] })
     queryClient.invalidateQueries({ queryKey: ['builder', formId, 'elements'] })
   }
+  const invalidateForm = (): void => {
+    queryClient.invalidateQueries({ queryKey: ['forms', formId] })
+    queryClient.invalidateQueries({ queryKey: ['forms'] })
+  }
+
+  const saveFormMutation = useMutation({
+    mutationFn: (data: { name: string; description: string | null }) => {
+      const current = formQuery.data
+      if (!current) throw new Error('Form not loaded yet')
+      return updateForm(token as string, formId, {
+        name: data.name,
+        description: data.description,
+        identification_type: current.identification_type,
+        allow_multiple_responses: current.allow_multiple_responses,
+        response_limit_enabled: current.response_limit_enabled,
+        max_responses: current.max_responses,
+        one_response_per_email: current.one_response_per_email,
+        open_at: current.open_at,
+        close_at: current.close_at,
+        settings: current.settings,
+        theme: current.theme,
+      })
+    },
+    onSuccess: invalidateForm,
+  })
 
   const createSectionMutation = useMutation({
     mutationFn: () => createSection(token as string, formId, {}),
-    onSuccess: (section) => {
-      invalidate()
-      setExplicitActiveSectionId(section.id)
-      setSelection({ kind: 'section', id: section.id })
-    },
+    onSuccess: invalidateBuilder,
   })
   const updateSectionMutation = useMutation({
     mutationFn: ({ sectionId, data }: { sectionId: string; data: FormSectionInput }) =>
       updateSection(token as string, formId, sectionId, data),
-    onSuccess: invalidate,
+    onSuccess: invalidateBuilder,
   })
   const deleteSectionMutation = useMutation({
     mutationFn: (sectionId: string) => deleteSection(token as string, formId, sectionId),
-    onSuccess: () => {
-      setSelection(null)
-      invalidate()
-    },
+    onSuccess: invalidateBuilder,
   })
   const reorderSectionsMutation = useMutation({
     mutationFn: (items: { id: string; order_index: number }[]) =>
       reorderSections(token as string, formId, items),
-    onSuccess: invalidate,
+    onSuccess: invalidateBuilder,
   })
 
   const createElementMutation = useMutation({
     mutationFn: ({ sectionId, data }: { sectionId: string; data: FormElementInput }) =>
       createElement(token as string, formId, sectionId, data),
-    onSuccess: (element) => {
-      invalidate()
-      setSelection({ kind: 'element', id: element.id })
-    },
+    onSuccess: invalidateBuilder,
   })
   const updateElementMutation = useMutation({
     mutationFn: ({ elementId, data }: { elementId: string; data: FormElementInput }) =>
       updateElement(token as string, formId, elementId, data),
-    onSuccess: invalidate,
+    onSuccess: invalidateBuilder,
   })
   const deleteElementMutation = useMutation({
     mutationFn: (elementId: string) => deleteElement(token as string, formId, elementId),
-    onSuccess: () => {
-      setSelection(null)
-      invalidate()
-    },
+    onSuccess: invalidateBuilder,
   })
   const reorderElementsMutation = useMutation({
     mutationFn: (items: { id: string; section_id: string; order_index: number }[]) =>
       reorderElements(token as string, formId, items),
-    onSuccess: invalidate,
+    onSuccess: invalidateBuilder,
   })
 
   const sections = useMemo(
@@ -127,17 +136,10 @@ export function BuilderPage() {
       list.push(element)
       map.set(element.section_id, list)
     }
-    for (const list of map.values()) {
-      list.sort((a, b) => a.order_index - b.order_index)
-    }
+    for (const list of map.values()) list.sort((a, b) => a.order_index - b.order_index)
     return map
   }, [elementsQuery.data])
 
-  const activeSectionId = explicitActiveSectionId ?? sections[0]?.id ?? null
-
-  // A fresh form has no sections yet — create the first one automatically
-  // so the palette has somewhere to add content, instead of asking the
-  // creator to click "add section" before they can add anything else.
   useEffect(() => {
     if (
       sectionsQuery.isSuccess &&
@@ -149,29 +151,6 @@ export function BuilderPage() {
       createSectionMutation.mutate()
     }
   }, [sectionsQuery.isSuccess, sections, createSectionMutation])
-
-  const selectedElement =
-    selection?.kind === 'element'
-      ? ((elementsQuery.data ?? []).find((element) => element.id === selection.id) ?? null)
-      : null
-  const selectedSection =
-    selection?.kind === 'section'
-      ? (sections.find((section) => section.id === selection.id) ?? null)
-      : null
-
-  function handleAddControl(definition: ControlDefinition): void {
-    if (!activeSectionId) return
-    createElementMutation.mutate({
-      sectionId: activeSectionId,
-      data: {
-        element_kind: definition.elementKind,
-        control_type: definition.controlType,
-        settings: defaultSettingsFor(definition.controlType),
-        validation: definition.elementKind === 'question' ? { required: false } : {},
-        options: definition.supportsOptions ? [{ label: t('builder.optionLabelPlaceholder') }] : [],
-      },
-    })
-  }
 
   function handleMoveElement(element: FormElement, direction: -1 | 1): void {
     const siblings = elementsBySection.get(element.section_id) ?? []
@@ -196,58 +175,38 @@ export function BuilderPage() {
     ])
   }
 
-  const isSaving = updateElementMutation.isPending || updateSectionMutation.isPending
-  const justSaved = updateElementMutation.isSuccess || updateSectionMutation.isSuccess
+  if (!token || formQuery.isLoading || sectionsQuery.isLoading || elementsQuery.isLoading) {
+    return <p className="p-6 text-sm text-muted-foreground">{t('editor.loading')}</p>
+  }
+  if (formQuery.isError || !formQuery.data || sectionsQuery.isError || elementsQuery.isError) {
+    return <p className="p-6 text-sm text-destructive">{t('editor.loadError')}</p>
+  }
 
-  // !token (auth not resolved yet) is treated the same as isLoading: a
-  // disabled query's own isLoading is false (nothing is fetching), so
-  // without this the component would briefly render as "loaded" with
-  // empty data before the queries actually start — see docs/PHASES/PHASE-3.md.
-  if (!token || sectionsQuery.isLoading || elementsQuery.isLoading) {
-    return <p className="p-6 text-sm text-muted-foreground">{t('builder.loading')}</p>
-  }
-  if (sectionsQuery.isError || elementsQuery.isError) {
-    return <p className="p-6 text-sm text-destructive">{t('builder.loadError')}</p>
-  }
+  const form = formQuery.data
 
   return (
-    <div className="flex h-[calc(100vh-8.5rem)] flex-col">
-      <div className="flex items-center justify-between border-b px-4 py-2">
-        <Link to={`/forms/${formId}`} className="text-sm text-muted-foreground hover:underline">
-          ← {t('builder.backToForm')}
-        </Link>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground" role="status">
-            {isSaving ? t('builder.saving') : justSaved ? t('builder.saved') : ''}
-          </span>
-          <Button type="button" variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
-            {t('builder.previewButton')}
-          </Button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-muted/30">
+      <EditorNavbar form={form} onOpenPreview={() => setPreviewOpen(true)} />
+      <EditorTabs />
 
-      <div className="flex min-h-0 flex-1">
-        <ComponentPalette onAdd={handleAddControl} disabled={!activeSectionId} />
-        <Canvas
+      {activeTab === 'questions' && (
+        <QuestionsTab
+          form={form}
           sections={sections}
           elementsBySection={elementsBySection}
-          selection={selection}
-          activeSectionId={activeSectionId}
-          onSelect={setSelection}
-          onSetActiveSection={setExplicitActiveSectionId}
+          onSaveForm={(data) => saveFormMutation.mutate(data)}
+          onCreateSection={() => createSectionMutation.mutate()}
+          onSaveSection={(sectionId, data) => updateSectionMutation.mutate({ sectionId, data })}
           onDeleteSection={(sectionId) => deleteSectionMutation.mutate(sectionId)}
+          onMoveSection={handleMoveSection}
+          onCreateElement={(sectionId, data) => createElementMutation.mutate({ sectionId, data })}
+          onSaveElement={(elementId, data) => updateElementMutation.mutate({ elementId, data })}
           onDeleteElement={(elementId) => deleteElementMutation.mutate(elementId)}
           onMoveElement={handleMoveElement}
-          onMoveSection={handleMoveSection}
-          onAddSection={() => createSectionMutation.mutate()}
         />
-        <PropertiesPanel
-          selectedElement={selectedElement}
-          selectedSection={selectedSection}
-          onSaveElement={(elementId, data) => updateElementMutation.mutate({ elementId, data })}
-          onSaveSection={(sectionId, data) => updateSectionMutation.mutate({ sectionId, data })}
-        />
-      </div>
+      )}
+      {activeTab === 'responses' && <ResponsesTabPlaceholder />}
+      {activeTab === 'settings' && <SettingsTab form={form} />}
 
       <PreviewDialog
         open={previewOpen}

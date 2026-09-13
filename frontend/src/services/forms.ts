@@ -27,6 +27,7 @@ export interface FormDetail {
   owner_id: string
   slug: string
   name: string
+  description: string | null
   form_type: FormType
   status: FormStatus
   identification_type: IdentificationType
@@ -46,6 +47,7 @@ export interface FormDetail {
 
 export interface FormUpdatePayload {
   name: string
+  description: string | null
   identification_type: IdentificationType
   allow_multiple_responses: boolean
   response_limit_enabled: boolean

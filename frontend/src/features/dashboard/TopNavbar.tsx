@@ -2,25 +2,11 @@ import { Menu, Search } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback'
 import { t } from '@/i18n'
-
-const AVATAR_COLORS = [
-  'bg-rose-500',
-  'bg-amber-500',
-  'bg-emerald-500',
-  'bg-sky-500',
-  'bg-violet-500',
-  'bg-fuchsia-500',
-]
-
-function avatarColorFor(seed: string): string {
-  let hash = 0
-  for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) % AVATAR_COLORS.length
-  return AVATAR_COLORS[hash]
-}
 
 export function TopNavbar() {
   const { user, logout } = useAuth()
@@ -64,13 +50,7 @@ export function TopNavbar() {
 
         <div className="flex shrink-0 items-center gap-3">
           {user && (
-            <span
-              className={`flex size-8 items-center justify-center rounded-full text-sm font-medium text-white ${avatarColorFor(user.id)}`}
-              title={user.name}
-              aria-label={t('dashboard.userMenuLabel')}
-            >
-              {user.name.charAt(0).toUpperCase()}
-            </span>
+            <Avatar seed={user.id} label={user.name} ariaLabel={t('dashboard.userMenuLabel')} />
           )}
           <Button variant="outline" size="sm" onClick={logout}>
             {t('auth.logout')}

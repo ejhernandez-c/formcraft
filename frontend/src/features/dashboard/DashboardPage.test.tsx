@@ -83,6 +83,7 @@ describe('DashboardPage', () => {
       owner_id: 'u1',
       slug: 'xyz789',
       name: 'Nueva encuesta',
+      description: null,
       form_type: 'blank',
       status: 'draft',
       identification_type: 'anonymous',

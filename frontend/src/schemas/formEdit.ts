@@ -2,9 +2,10 @@ import { z } from 'zod'
 
 // Mirrors backend/app/modules/forms/schemas.py:FormUpdate — client-side
 // validation is UX only, the backend re-validates and wins (CLAUDE.md §67).
+// `name`/`description` are edited inline in EditorNavbar/QuestionsTab's
+// header card, not through this settings-only schema.
 export const formEditSchema = z
   .object({
-    name: z.string().min(1).max(255),
     identification_type: z.enum(['anonymous', 'identified']),
     allow_multiple_responses: z.boolean(),
     response_limit_enabled: z.boolean(),

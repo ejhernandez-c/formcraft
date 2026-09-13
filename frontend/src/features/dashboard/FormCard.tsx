@@ -42,7 +42,7 @@ export function FormCard({
 
   return (
     <div className="overflow-hidden rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md">
-      <Link to={`/forms/${form.id}/builder?preview=1`}>
+      <Link to={`/forms/${form.id}?preview=1`}>
         <FormThumbnail formType={form.form_type} variant="recent" />
       </Link>
       <div className="space-y-1.5 p-3">
@@ -62,7 +62,7 @@ export function FormCard({
               <DropdownMenuItem onClick={() => navigate(`/forms/${form.id}`)}>
                 {t('dashboard.actionEdit')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate(`/forms/${form.id}/builder?preview=1`)}>
+              <DropdownMenuItem onClick={() => navigate(`/forms/${form.id}?preview=1`)}>
                 {t('dashboard.actionPreview')}
               </DropdownMenuItem>
               <DropdownMenuItem disabled={isMutating} onClick={onDuplicate}>

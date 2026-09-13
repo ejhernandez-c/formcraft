@@ -1,0 +1,55 @@
+{
+  "editor.backToDashboard": "Volver a mis formularios",
+  "editor.formTitlePlaceholder": "Formulario sin título",
+  "editor.formDescriptionPlaceholder": "Descripción del formulario (opcional)",
+  "editor.themeButton": "Tema",
+  "editor.shareButton": "Compartir",
+  "editor.menuOpen": "Abrir menú de acciones",
+  "editor.loading": "Cargando formulario...",
+  "editor.loadError": "No se pudo cargar el formulario.",
+
+  "editor.tabQuestions": "Preguntas",
+  "editor.tabResponses": "Respuestas",
+  "editor.tabSettings": "Configuración",
+  "editor.responsesComingSoon": "El panel de respuestas estará disponible próximamente.",
+
+  "editor.toolbarAddQuestion": "Agregar pregunta",
+  "editor.toolbarAddTitleBlock": "Agregar título o descripción",
+  "editor.toolbarAddImage": "Agregar imagen",
+  "editor.toolbarAddSection": "Agregar sección",
+
+  "editor.sectionTitlePlaceholder": "Título de la sección",
+  "editor.sectionDescriptionPlaceholder": "Descripción de la sección",
+  "editor.deleteSection": "Eliminar sección",
+  "editor.deleteSectionConfirm": "¿Eliminar esta sección y todo su contenido?",
+
+  "editor.questionPlaceholder": "Pregunta sin título",
+  "editor.moveUp": "Mover arriba",
+  "editor.moveDown": "Mover abajo",
+  "editor.deleteElement": "Eliminar elemento",
+  "editor.requiredField": "Obligatorio",
+  "editor.helpTextPlaceholder": "Texto de ayuda (opcional)",
+  "editor.optionsMinError": "Agrega al menos una opción.",
+  "editor.minLabel": "Mín.",
+  "editor.maxLabel": "Máx.",
+  "editor.allowHalfLabel": "Medios puntos",
+  "editor.imageUrlPlaceholder": "URL de la imagen",
+  "editor.headingLevelLabel": "Tamaño",
+
+  "editor.themePrimaryLabel": "Color principal",
+  "editor.themeSecondaryLabel": "Color secundario",
+  "editor.themeSaved": "Tema guardado",
+
+  "editor.shareLinkLabel": "Enlace público",
+  "editor.shareCopyButton": "Copiar enlace",
+  "editor.shareCopied": "Enlace copiado",
+  "editor.sharePublicNotLive": "La página pública aún no está disponible (próximamente).",
+
+  "editor.publishDialogTitle": "Publicar formulario",
+  "editor.publishDialogSummaryIdentification": "Identificación",
+  "editor.publishDialogSummaryCapacity": "Límite de respuestas",
+  "editor.publishDialogSummaryNoLimit": "Sin límite",
+  "editor.publishDialogConfigureLink": "Ajustar en Configuración",
+  "editor.publishDialogConfirm": "Publicar",
+  "editor.publishDialogCancel": "Cancelar"
+}
