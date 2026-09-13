@@ -1,0 +1,7 @@
+{
+  "app.title": "Formcraft",
+  "health.checking": "Comprobando conexión con el servidor...",
+  "health.ok": "Conectado al servidor correctamente.",
+  "health.error": "No se pudo conectar con el servidor.",
+  "health.retry": "Reintentar"
+}
