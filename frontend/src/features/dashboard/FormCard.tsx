@@ -68,9 +68,12 @@ export function FormCard({
             {t('dashboard.actionArchive')}
           </Button>
         )}
-        <Button size="sm" variant="ghost" disabled title={t('dashboard.comingSoon')}>
+        <Link
+          to={`/forms/${form.id}/builder?preview=1`}
+          className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+        >
           {t('dashboard.actionPreview')}
-        </Button>
+        </Link>
         <Button size="sm" variant="ghost" disabled title={t('dashboard.comingSoon')}>
           {t('dashboard.actionResults')}
         </Button>
