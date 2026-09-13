@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -148,7 +148,14 @@ export function FormEditPage() {
             {t('forms.publicUrlLabel')}: /f/{form.slug}
           </p>
         </div>
-        <Badge variant="secondary">{t(STATUS_LABEL_KEYS[form.status])}</Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">{t(STATUS_LABEL_KEYS[form.status])}</Badge>
+          {form.status !== 'archived' && (
+            <Link to={`/forms/${form.id}/builder`} className={buttonVariants({ size: 'sm' })}>
+              {t('forms.openBuilder')}
+            </Link>
+          )}
+        </div>
       </div>
 
       <section className="space-y-2 rounded-lg border p-4">

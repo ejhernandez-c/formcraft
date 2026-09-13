@@ -28,7 +28,9 @@ Three-pane desktop layout:
 └──────────────┴──────────────────────────┴───────────────────┘
 ```
 
-Supports: title, description, instructions, logo, sections, content blocks, questions, drag-reorder, required-field toggles, validation config, control-specific settings, autosave, preview (mobile/tablet/desktop), publish.
+Supports: title, description, instructions, logo, sections, content blocks, questions, reordering, required-field toggles, validation config, control-specific settings, autosave, preview (mobile/tablet/desktop), publish.
+
+**Reordering (decided in Phase 3): up/down buttons, not drag-and-drop.** Every section and element row has move-up/move-down controls instead of a pointer-drag interaction. Rationale: keyboard-operable by default (no extra ARIA drag-and-drop wiring needed to meet the `accessibility` skill's bar), zero new dependency (a real drag library — e.g. `@dnd-kit`— would be the first non-CLAUDE.md-specified frontend dependency added purely for this), and the backend's reorder endpoints already accept an arbitrary `{id, order_index}` list, so upgrading to real drag-and-drop later is a frontend-only change if ever justified.
 
 ## 4. Public form (respondent)
 

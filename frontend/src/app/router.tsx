@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import { AppLayout } from '@/app/AppLayout'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
+import { BuilderPage } from '@/features/builder/BuilderPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { FormEditPage } from '@/features/forms/FormEditPage'
 
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
         children: [
           { path: '/', element: <DashboardPage /> },
           { path: '/forms/:id', element: <FormEditPage /> },
+          { path: '/forms/:id/builder', element: <BuilderPage /> },
         ],
       },
     ],

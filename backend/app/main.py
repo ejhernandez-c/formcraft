@@ -6,6 +6,7 @@ from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 from app.modules.auth.router import router as auth_router
 from app.modules.common.router import router as common_router
+from app.modules.form_builder.router import router as form_builder_router
 from app.modules.forms.router import router as forms_router
 from app.modules.users.router import router as users_router
 
@@ -42,6 +43,7 @@ register_exception_handlers(app)
 app.include_router(common_router)
 app.include_router(users_router)
 app.include_router(forms_router)
+app.include_router(form_builder_router)
 
 if settings.auth_mode == "local":
     app.include_router(auth_router)

@@ -7,6 +7,7 @@
   "forms.saved": "Cambios guardados.",
   "forms.saveError": "No se pudieron guardar los cambios.",
   "forms.publicUrlLabel": "Enlace público",
+  "forms.openBuilder": "Abrir constructor",
   "forms.nameLabel": "Nombre",
   "forms.identificationTypeLabel": "Identificación de respondientes",
   "forms.identificationAnonymous": "Anónimo",

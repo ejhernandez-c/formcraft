@@ -1,4 +1,5 @@
 import auth from './es/auth.json'
+import builder from './es/builder.json'
 import common from './es/common.json'
 import dashboard from './es/dashboard.json'
 import forms from './es/forms.json'
@@ -10,7 +11,7 @@ import forms from './es/forms.json'
 // locales are actually needed, is a drop-in swap behind the same API.
 // One file per feature area (CLAUDE.md §21) merged into a single flat
 // dictionary — keys are already namespaced by prefix (e.g. "auth.*").
-const es = { ...common, ...auth, ...dashboard, ...forms } as const
+const es = { ...common, ...auth, ...dashboard, ...forms, ...builder } as const
 const dictionaries = { es } as const
 
 type Locale = keyof typeof dictionaries
