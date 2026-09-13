@@ -57,8 +57,17 @@ export interface FormUpdatePayload {
   theme: Record<string, unknown>
 }
 
-export function listForms(token: string): Promise<FormListResponse> {
-  return apiFetch<FormListResponse>('/api/forms', { token })
+export interface ListFormsParams {
+  search?: string
+  sort?: string
+}
+
+export function listForms(token: string, params: ListFormsParams = {}): Promise<FormListResponse> {
+  const query = new URLSearchParams()
+  if (params.search) query.set('search', params.search)
+  if (params.sort) query.set('sort', params.sort)
+  const suffix = query.toString() ? `?${query.toString()}` : ''
+  return apiFetch<FormListResponse>(`/api/forms${suffix}`, { token })
 }
 
 export function createForm(token: string, name: string, formType: FormType): Promise<FormDetail> {

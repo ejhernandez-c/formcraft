@@ -22,7 +22,7 @@ beforeEach(() => {
 })
 
 describe('AppLayout', () => {
-  it('shows the signed-in user and a connectivity indicator', async () => {
+  it('shows the signed-in user, the navbar, and a connectivity indicator', async () => {
     vi.mocked(apiService.getHealth).mockResolvedValue({ status: 'ok' })
 
     render(
@@ -37,7 +37,9 @@ describe('AppLayout', () => {
       </AuthProvider>,
     )
 
-    await waitFor(() => expect(screen.getByText('Ada Lovelace')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByTitle('Ada Lovelace')).toBeInTheDocument())
+    expect(screen.getByText('Formcraft')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Buscar')).toBeInTheDocument()
     expect(screen.getByText('page content')).toBeInTheDocument()
     await waitFor(() =>
       expect(screen.getByText('Conectado al servidor correctamente.')).toBeInTheDocument(),

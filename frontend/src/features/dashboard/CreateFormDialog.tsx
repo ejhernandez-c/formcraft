@@ -36,20 +36,20 @@ const FORM_TYPE_OPTIONS: { value: FormType; labelKey: TranslationKey }[] = [
 interface CreateFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialFormType?: FormType
 }
 
-export function CreateFormDialog({ open, onOpenChange }: CreateFormDialogProps) {
+export function CreateFormDialog({ open, onOpenChange, initialFormType }: CreateFormDialogProps) {
   const { token } = useAuth()
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
-  const [formType, setFormType] = useState<FormType>('blank')
+  const [formType, setFormType] = useState<FormType>(initialFormType ?? 'blank')
 
   const mutation = useMutation({
     mutationFn: () => createForm(token as string, name, formType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['forms'] })
       setName('')
-      setFormType('blank')
       onOpenChange(false)
     },
   })

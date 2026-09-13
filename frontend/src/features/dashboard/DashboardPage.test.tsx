@@ -103,8 +103,8 @@ describe('DashboardPage', () => {
     const user = userEvent.setup()
     renderDashboard()
 
-    await waitFor(() => expect(screen.getByText('Crear formulario')).toBeInTheDocument())
-    await user.click(screen.getByText('Crear formulario'))
+    await waitFor(() => expect(screen.getByText('Formulario en blanco')).toBeInTheDocument())
+    await user.click(screen.getByText('Formulario en blanco'))
     await user.type(screen.getByLabelText('Nombre del formulario'), 'Nueva encuesta')
     await user.click(screen.getByRole('button', { name: 'Crear' }))
 
@@ -114,6 +114,59 @@ describe('DashboardPage', () => {
         'Nueva encuesta',
         'blank',
       ),
+    )
+  })
+
+  it('opens the three-dot menu and duplicates a form', async () => {
+    vi.mocked(formsService.listForms).mockResolvedValue({
+      items: [
+        {
+          id: 'f1',
+          slug: 'abc123',
+          name: 'Encuesta de satisfacción',
+          form_type: 'survey',
+          status: 'draft',
+          updated_at: '2026-01-01T00:00:00Z',
+          response_count: 0,
+        },
+      ],
+      page: 1,
+      page_size: 25,
+      total: 1,
+    })
+    vi.mocked(formsService.duplicateForm).mockResolvedValue({} as never)
+
+    const user = userEvent.setup()
+    renderDashboard()
+
+    await waitFor(() => expect(screen.getByText('Encuesta de satisfacción')).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Abrir menú de acciones' }))
+    await user.click(await screen.findByText('Duplicar'))
+
+    await waitFor(() =>
+      expect(formsService.duplicateForm).toHaveBeenCalledWith('valid-token', 'f1'),
+    )
+  })
+
+  it('updates the URL when sorting A-Z', async () => {
+    vi.mocked(formsService.listForms).mockResolvedValue({
+      items: [],
+      page: 1,
+      page_size: 25,
+      total: 0,
+    })
+
+    const user = userEvent.setup()
+    renderDashboard()
+
+    await waitFor(() => expect(screen.getByLabelText('Ordenar de A a Z')).toBeInTheDocument())
+    await user.click(screen.getByLabelText('Ordenar de A a Z'))
+
+    await waitFor(() =>
+      expect(formsService.listForms).toHaveBeenCalledWith('valid-token', {
+        search: undefined,
+        sort: 'name',
+      }),
     )
   })
 })

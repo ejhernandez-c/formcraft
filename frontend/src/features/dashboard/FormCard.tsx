@@ -1,8 +1,15 @@
-import { Link } from 'react-router-dom'
+import { MoreVertical } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
-import { Button, buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { FormThumbnail } from '@/features/dashboard/FormThumbnail'
 import type { TranslationKey } from '@/i18n'
 import { t } from '@/i18n'
 import type { FormListItem, FormStatus } from '@/services/forms'
@@ -31,56 +38,70 @@ export function FormCard({
   onDuplicate,
   isMutating,
 }: FormCardProps) {
+  const navigate = useNavigate()
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between gap-4">
-        <div>
-          <CardTitle>{form.name}</CardTitle>
-          <p className="text-xs text-muted-foreground">
+    <div className="overflow-hidden rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md">
+      <Link to={`/forms/${form.id}/builder?preview=1`}>
+        <FormThumbnail formType={form.form_type} variant="recent" />
+      </Link>
+      <div className="space-y-1.5 p-3">
+        <div className="flex items-start justify-between gap-2">
+          <Link to={`/forms/${form.id}`} className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">{form.name}</p>
+          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="ghost" size="icon-sm" aria-label={t('dashboard.menuOpen')} />
+              }
+            >
+              <MoreVertical aria-hidden="true" className="size-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate(`/forms/${form.id}`)}>
+                {t('dashboard.actionEdit')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(`/forms/${form.id}/builder?preview=1`)}>
+                {t('dashboard.actionPreview')}
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled={isMutating} onClick={onDuplicate}>
+                {t('dashboard.actionDuplicate')}
+              </DropdownMenuItem>
+              {form.status === 'draft' && (
+                <DropdownMenuItem disabled={isMutating} onClick={onPublish}>
+                  {t('dashboard.actionPublish')}
+                </DropdownMenuItem>
+              )}
+              {form.status === 'published' && (
+                <DropdownMenuItem disabled={isMutating} onClick={onClose}>
+                  {t('dashboard.actionClose')}
+                </DropdownMenuItem>
+              )}
+              {form.status !== 'archived' && (
+                <DropdownMenuItem disabled={isMutating} onClick={onArchive}>
+                  {t('dashboard.actionArchive')}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem disabled title={t('dashboard.comingSoon')}>
+                {t('dashboard.actionResults')}
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled title={t('dashboard.comingSoon')}>
+                {t('dashboard.actionShare')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <Badge variant="secondary" className="text-[10px]">
+            {t(STATUS_LABEL_KEYS[form.status])}
+          </Badge>
+          <span>
             {form.response_count} {t('dashboard.responseCount')} · {t('dashboard.updatedAt')}{' '}
             {new Date(form.updated_at).toLocaleDateString('es-ES')}
-          </p>
+          </span>
         </div>
-        <Badge variant="secondary">{t(STATUS_LABEL_KEYS[form.status])}</Badge>
-      </CardHeader>
-      <CardContent className="flex flex-wrap gap-2">
-        <Link
-          to={`/forms/${form.id}`}
-          className={buttonVariants({ variant: 'outline', size: 'sm' })}
-        >
-          {t('dashboard.actionEdit')}
-        </Link>
-        <Button size="sm" variant="outline" disabled={isMutating} onClick={onDuplicate}>
-          {t('dashboard.actionDuplicate')}
-        </Button>
-        {form.status === 'draft' && (
-          <Button size="sm" disabled={isMutating} onClick={onPublish}>
-            {t('dashboard.actionPublish')}
-          </Button>
-        )}
-        {form.status === 'published' && (
-          <Button size="sm" variant="outline" disabled={isMutating} onClick={onClose}>
-            {t('dashboard.actionClose')}
-          </Button>
-        )}
-        {form.status !== 'archived' && (
-          <Button size="sm" variant="outline" disabled={isMutating} onClick={onArchive}>
-            {t('dashboard.actionArchive')}
-          </Button>
-        )}
-        <Link
-          to={`/forms/${form.id}/builder?preview=1`}
-          className={buttonVariants({ variant: 'ghost', size: 'sm' })}
-        >
-          {t('dashboard.actionPreview')}
-        </Link>
-        <Button size="sm" variant="ghost" disabled title={t('dashboard.comingSoon')}>
-          {t('dashboard.actionResults')}
-        </Button>
-        <Button size="sm" variant="ghost" disabled title={t('dashboard.comingSoon')}>
-          {t('dashboard.actionShare')}
-        </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

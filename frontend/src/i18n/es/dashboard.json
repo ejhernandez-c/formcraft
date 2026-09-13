@@ -30,5 +30,12 @@
   "dashboard.formTypeEventRegistration": "Registro a evento",
   "dashboard.formTypeRegistration": "Formulario de registro",
   "dashboard.formTypeApplication": "Solicitud",
-  "dashboard.formTypeBlank": "Formulario en blanco"
+  "dashboard.formTypeBlank": "Formulario en blanco",
+  "dashboard.searchPlaceholder": "Buscar",
+  "dashboard.templateGalleryTitle": "Comenzar un nuevo formulario",
+  "dashboard.recentFormsTitle": "Formularios recientes",
+  "dashboard.sortAZ": "Ordenar de A a Z",
+  "dashboard.menuOpen": "Abrir menú de acciones",
+  "dashboard.blankTemplateLabel": "Formulario en blanco",
+  "dashboard.userMenuLabel": "Cuenta"
 }

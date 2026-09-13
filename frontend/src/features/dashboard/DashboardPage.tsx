@@ -1,21 +1,25 @@
-import { useState } from 'react'
+import { ArrowDownAZ } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
-import { CreateFormDialog } from '@/features/dashboard/CreateFormDialog'
-import { FormCard } from '@/features/dashboard/FormCard'
 import { useAuth } from '@/features/auth/AuthContext'
+import { FormCard } from '@/features/dashboard/FormCard'
+import { TemplateGallery } from '@/features/dashboard/TemplateGallery'
 import { t } from '@/i18n'
 import { archiveForm, closeForm, duplicateForm, listForms, publishForm } from '@/services/forms'
 
 export function DashboardPage() {
   const { token } = useAuth()
   const queryClient = useQueryClient()
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const search = searchParams.get('search') ?? undefined
+  const sort = searchParams.get('sort') ?? undefined
 
   const formsQuery = useQuery({
-    queryKey: ['forms'],
-    queryFn: () => listForms(token as string),
+    queryKey: ['forms', search, sort],
+    queryFn: () => listForms(token as string, { search, sort }),
     enabled: Boolean(token),
   })
 
@@ -46,36 +50,60 @@ export function DashboardPage() {
     archiveMutation.isPending ||
     duplicateMutation.isPending
 
+  function toggleSort(): void {
+    const next = new URLSearchParams(searchParams)
+    if (sort === 'name') {
+      next.delete('sort')
+    } else {
+      next.set('sort', 'name')
+    }
+    setSearchParams(next)
+  }
+
   return (
-    <main className="mx-auto max-w-4xl space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t('dashboard.title')}</h1>
-        <Button onClick={() => setDialogOpen(true)}>{t('dashboard.createButton')}</Button>
-      </div>
+    <main className="mx-auto max-w-6xl space-y-8 p-6">
+      <TemplateGallery />
 
-      {formsQuery.isLoading && (
-        <p className="text-sm text-muted-foreground">{t('dashboard.loading')}</p>
-      )}
-      {formsQuery.isError && <p className="text-sm text-destructive">{t('dashboard.loadError')}</p>}
-      {formsQuery.data && formsQuery.data.items.length === 0 && (
-        <p className="text-sm text-muted-foreground">{t('dashboard.empty')}</p>
-      )}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            {t('dashboard.recentFormsTitle')}
+          </h2>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t('dashboard.sortAZ')}
+            aria-pressed={sort === 'name'}
+            onClick={toggleSort}
+          >
+            <ArrowDownAZ aria-hidden="true" className="size-4" />
+          </Button>
+        </div>
 
-      <div className="space-y-3">
-        {formsQuery.data?.items.map((form) => (
-          <FormCard
-            key={form.id}
-            form={form}
-            isMutating={isMutating}
-            onPublish={() => publishMutation.mutate(form.id)}
-            onClose={() => closeMutation.mutate(form.id)}
-            onArchive={() => archiveMutation.mutate(form.id)}
-            onDuplicate={() => duplicateMutation.mutate(form.id)}
-          />
-        ))}
-      </div>
+        {formsQuery.isLoading && (
+          <p className="text-sm text-muted-foreground">{t('dashboard.loading')}</p>
+        )}
+        {formsQuery.isError && (
+          <p className="text-sm text-destructive">{t('dashboard.loadError')}</p>
+        )}
+        {formsQuery.data && formsQuery.data.items.length === 0 && (
+          <p className="text-sm text-muted-foreground">{t('dashboard.empty')}</p>
+        )}
 
-      <CreateFormDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {formsQuery.data?.items.map((form) => (
+            <FormCard
+              key={form.id}
+              form={form}
+              isMutating={isMutating}
+              onPublish={() => publishMutation.mutate(form.id)}
+              onClose={() => closeMutation.mutate(form.id)}
+              onArchive={() => archiveMutation.mutate(form.id)}
+              onDuplicate={() => duplicateMutation.mutate(form.id)}
+            />
+          ))}
+        </div>
+      </section>
     </main>
   )
 }
