@@ -123,6 +123,7 @@ def list_forms(
 def update_form(db: Session, *, owner_id: uuid.UUID, form_id: uuid.UUID, data: FormUpdate) -> Form:
     form = get_owned_form(db, owner_id=owner_id, form_id=form_id)
     form.name = data.name
+    form.description = data.description
     form.identification_type = data.identification_type
     form.allow_multiple_responses = data.allow_multiple_responses
     form.response_limit_enabled = data.response_limit_enabled
@@ -145,6 +146,7 @@ def duplicate_form(db: Session, *, owner_id: uuid.UUID, form_id: uuid.UUID) -> F
         owner_id=owner_id,
         slug=_unique_slug(db),
         name=f"{original.name} (copia)",
+        description=original.description,
         form_type=original.form_type,
         status="draft",
         identification_type=original.identification_type,
@@ -169,6 +171,7 @@ def _build_snapshot(form: Form) -> dict[str, Any]:
     exists, without needing to change."""
     return {
         "name": form.name,
+        "description": form.description,
         "form_type": form.form_type,
         "identification_type": form.identification_type,
         "sections": [],

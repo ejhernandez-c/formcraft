@@ -21,6 +21,7 @@ class FormUpdate(BaseModel):
     published_snapshot; those change only via the lifecycle action routes."""
 
     name: str = Field(min_length=1, max_length=255)
+    description: str | None = None
     identification_type: IdentificationTypeLiteral
     allow_multiple_responses: bool
     response_limit_enabled: bool
@@ -45,6 +46,7 @@ class FormRead(BaseModel):
     owner_id: uuid.UUID
     slug: str
     name: str
+    description: str | None
     form_type: str
     status: str
     identification_type: str

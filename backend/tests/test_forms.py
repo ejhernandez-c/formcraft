@@ -86,6 +86,23 @@ def test_update_form_replaces_metadata(client: TestClient, make_auth_headers: Au
     assert response.json()["name"] == "Encuesta actualizada"
 
 
+def test_new_form_has_no_description_and_update_can_set_it(
+    client: TestClient, make_auth_headers: AuthHeaders
+) -> None:
+    headers = make_auth_headers(None)
+    created = _create_form(client, headers).json()
+    assert created["description"] is None
+
+    response = client.put(
+        f"/api/forms/{created['id']}",
+        json=_valid_update_payload(description="Una breve descripción."),
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["description"] == "Una breve descripción."
+
+
 def test_response_limit_enabled_requires_max_responses(
     client: TestClient, make_auth_headers: AuthHeaders
 ) -> None:

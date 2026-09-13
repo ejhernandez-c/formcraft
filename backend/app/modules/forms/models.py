@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -41,6 +41,7 @@ class Form(Base):
     )
     slug: Mapped[str] = mapped_column(String(32), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     form_type: Mapped[str] = mapped_column(String(32), nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft", index=True)
@@ -69,6 +70,12 @@ class Form(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
+    # passive_deletes=True: form_sections.form_id has ON DELETE CASCADE at
+    # the database level — see the same note on FormSection.elements in
+    # app/modules/form_builder/models.py, where this was actually caught.
     sections: Mapped[list["FormSection"]] = relationship(
-        "FormSection", back_populates="form", order_by="FormSection.order_index"
+        "FormSection",
+        back_populates="form",
+        order_by="FormSection.order_index",
+        passive_deletes=True,
     )
