@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef } from 'react'
 export function useDebouncedCallback<Args extends unknown[]>(
   callback: (...args: Args) => void,
   delayMs: number,
-): { debounced: (...args: Args) => void; flush: (...args: Args) => void } {
+): { debounced: (...args: Args) => void; flush: (...args: Args) => void; cancel: () => void } {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const callbackRef = useRef(callback)
 
@@ -45,5 +45,16 @@ export function useDebouncedCallback<Args extends unknown[]>(
     callbackRef.current(...args)
   }, [])
 
-  return { debounced, flush }
+  // Distinct from flush: drops the pending call instead of executing it —
+  // for callers that are about to send their own, more complete save and
+  // need to make sure a stale pending one doesn't land afterward and
+  // clobber it (e.g. switching a question's control type — see ElementCard.tsx).
+  const cancel = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+  }, [])
+
+  return { debounced, flush, cancel }
 }

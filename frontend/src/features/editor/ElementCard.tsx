@@ -60,10 +60,10 @@ export function ElementCard({
   onDelete,
   onMove,
 }: ElementCardProps) {
-  const { register, control, watch } = useForm<ElementFormValues>({
+  const { register, control, watch, getValues, reset } = useForm<ElementFormValues>({
     defaultValues: toFormValues(element),
   })
-  const { debounced } = useDebouncedCallback((values: ElementFormValues) => {
+  const { debounced, cancel } = useDebouncedCallback((values: ElementFormValues) => {
     onSave(toApiPayload(values, element.element_kind, element.control_type))
   }, 600)
 
@@ -74,6 +74,34 @@ export function ElementCard({
 
   const definition = getControlDefinition(element.control_type)
   const isContent = element.element_kind === 'content'
+
+  // Switching control type used to send a minimal payload (element_kind +
+  // control_type + options only) straight to onSave, bypassing toApiPayload
+  // entirely — since PUT is a full-resource replace (docs/API.md §4), that
+  // silently wiped label/help_text/settings on every type switch. Routing
+  // through the same toApiPayload as every other save fixes that, and
+  // cancel() drops any autosave still pending from whatever was being typed
+  // right before the switch, so it can't land afterward with stale data.
+  function handleTypeChange(option: QuestionTypeOption): void {
+    cancel()
+    const newDefinition = getControlDefinition(option.controlType)
+    const nextValues: ElementFormValues = {
+      ...getValues(),
+      numberMin: '',
+      numberMax: '',
+      numberDecimals: '',
+      ratingMin: '1',
+      ratingMax: '5',
+      ratingAllowHalf: false,
+      imageUrl: '',
+      headingLevel: '2',
+      options: newDefinition?.supportsOptions
+        ? [{ label: t('builder.optionLabelPlaceholder'), value: '' }]
+        : [],
+    }
+    reset(nextValues)
+    onSave(toApiPayload(nextValues, 'question', option.controlType))
+  }
 
   return (
     <div
@@ -95,7 +123,9 @@ export function ElementCard({
           />
         )}
 
-        {!isContent && <QuestionTypeSelect currentType={element.control_type} onSave={onSave} />}
+        {!isContent && (
+          <QuestionTypeSelect currentType={element.control_type} onSelectType={handleTypeChange} />
+        )}
       </div>
 
       {!isContent && (
@@ -232,22 +262,13 @@ const ALL_QUESTION_TYPE_OPTIONS = QUESTION_TYPE_GROUPS.flat()
 
 function QuestionTypeSelect({
   currentType,
-  onSave,
+  onSelectType,
 }: {
   currentType: string
-  onSave: (data: FormElementInput) => void
+  onSelectType: (option: QuestionTypeOption) => void
 }) {
   const current = ALL_QUESTION_TYPE_OPTIONS.find((option) => option.controlType === currentType)
   const CurrentIcon = current?.icon ?? CircleDot
-
-  function selectType(option: QuestionTypeOption): void {
-    const definition = getControlDefinition(option.controlType)
-    onSave({
-      element_kind: 'question',
-      control_type: option.controlType,
-      options: definition?.supportsOptions ? [{ label: t('builder.optionLabelPlaceholder') }] : [],
-    })
-  }
 
   return (
     <DropdownMenu>
@@ -277,7 +298,7 @@ function QuestionTypeSelect({
             {group.map((option) => (
               <DropdownMenuItem
                 key={option.controlType}
-                onClick={() => selectType(option)}
+                onClick={() => onSelectType(option)}
                 className={cn(option.controlType === currentType && 'bg-primary/10')}
               >
                 <option.icon aria-hidden="true" className="size-4 text-muted-foreground" />
