@@ -194,6 +194,9 @@ export function FormEditorPage() {
           form={form}
           sections={sections}
           elementsBySection={elementsBySection}
+          deletingElementId={
+            deleteElementMutation.isPending ? (deleteElementMutation.variables ?? null) : null
+          }
           onSaveForm={(data) => saveFormMutation.mutate(data)}
           onCreateSection={() => createSectionMutation.mutate()}
           onSaveSection={(sectionId, data) => updateSectionMutation.mutate({ sectionId, data })}

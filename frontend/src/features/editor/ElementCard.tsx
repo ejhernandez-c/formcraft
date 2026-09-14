@@ -44,6 +44,7 @@ interface ElementCardProps {
   isSelected: boolean
   canMoveUp: boolean
   canMoveDown: boolean
+  isDeleting: boolean
   onSelect: () => void
   onSave: (data: FormElementInput) => void
   onDelete: () => void
@@ -55,6 +56,7 @@ export function ElementCard({
   isSelected,
   canMoveUp,
   canMoveDown,
+  isDeleting,
   onSelect,
   onSave,
   onDelete,
@@ -192,6 +194,7 @@ export function ElementCard({
             variant="ghost"
             size="icon-sm"
             aria-label={t('editor.deleteElement')}
+            disabled={isDeleting}
             onClick={(event) => {
               event.stopPropagation()
               onDelete()

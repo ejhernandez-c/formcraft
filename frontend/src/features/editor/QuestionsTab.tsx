@@ -24,6 +24,7 @@ interface QuestionsTabProps {
   form: FormDetail
   sections: FormSection[]
   elementsBySection: Map<string, FormElement[]>
+  deletingElementId: string | null
   onSaveForm: (data: { name: string; description: string | null }) => void
   onCreateSection: () => void
   onSaveSection: (sectionId: string, data: FormSectionInput) => void
@@ -39,6 +40,7 @@ export function QuestionsTab({
   form,
   sections,
   elementsBySection,
+  deletingElementId,
   onSaveForm,
   onCreateSection,
   onSaveSection,
@@ -114,6 +116,7 @@ export function QuestionsTab({
                       isSelected={selection?.kind === 'element' && selection.id === element.id}
                       canMoveUp={index > 0}
                       canMoveDown={index < (elementsBySection.get(section.id)?.length ?? 0) - 1}
+                      isDeleting={deletingElementId === element.id}
                       onSelect={() => setSelection({ kind: 'element', id: element.id })}
                       onSave={(data) => onSaveElement(element.id, data)}
                       onDelete={() => onDeleteElement(element.id)}

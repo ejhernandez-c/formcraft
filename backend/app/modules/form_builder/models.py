@@ -44,15 +44,20 @@ class FormSection(Base):
     order_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
     form: Mapped["Form"] = relationship("Form", back_populates="sections")
-    # passive_deletes=True: form_elements.section_id has ON DELETE CASCADE at
-    # the database level (see the Phase 1 migration). Without this, the ORM's
-    # default behavior tries to NULL out the FK on children before deleting
-    # the parent, which fails outright since the column is NOT NULL — this
-    # lets the database's cascade run instead of the ORM interfering.
+    # cascade="all, delete-orphan": when a section (or one of its elements)
+    # is loaded into the session and then deleted, the ORM issues explicit
+    # DELETE statements for its children instead of trying to NULL out their
+    # NOT NULL foreign key — see the form_element_id NotNullViolation this
+    # produced without it (docs/ADR — passive_deletes alone only skips
+    # autoloading an *unloaded* collection before cascading; an
+    # already-loaded one, e.g. via selectinload, still gets processed).
+    # passive_deletes=True stays alongside it so the *unloaded* case defers
+    # to the database's own ON DELETE CASCADE instead of an extra SELECT.
     elements: Mapped[list["FormElement"]] = relationship(
         "FormElement",
         back_populates="section",
         order_by="FormElement.order_index",
+        cascade="all, delete-orphan",
         passive_deletes=True,
     )
 
@@ -82,13 +87,16 @@ class FormElement(Base):
     validation: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
 
     section: Mapped[FormSection] = relationship("FormSection", back_populates="elements")
-    # See the passive_deletes note on FormSection.elements above — same
-    # reasoning applies here (question_options.form_element_id also cascades
-    # at the database level).
+    # See the cascade/passive_deletes note on FormSection.elements above —
+    # same reasoning applies here. This one is the reproduced bug: deleting
+    # an element whose options were eagerly selectinload()ed (see
+    # get_owned_element) raised IntegrityError on question_options.form_element_id
+    # because the ORM tried to null it out instead of deleting the rows.
     options: Mapped[list["QuestionOption"]] = relationship(
         "QuestionOption",
         back_populates="element",
         order_by="QuestionOption.order_index",
+        cascade="all, delete-orphan",
         passive_deletes=True,
     )
 

@@ -228,6 +228,34 @@ def test_delete_section_cascades_to_its_elements(
     assert elements_response.json() == []
 
 
+def test_delete_element_with_options_succeeds(
+    client: TestClient, make_auth_headers: AuthHeaders
+) -> None:
+    # Regression test: deleting a question element whose options were
+    # eagerly loaded (get_owned_element selectinload()s them) used to raise
+    # IntegrityError, since the ORM tried to null out question_options'
+    # NOT NULL form_element_id instead of deleting the rows — see the
+    # cascade="all, delete-orphan" fix on FormElement.options.
+    headers = make_auth_headers(None)
+    form_id = _create_form(client, headers).json()["id"]
+    section_id = _create_section(client, headers, form_id).json()["id"]
+    element = client.post(
+        f"/api/forms/{form_id}/sections/{section_id}/elements",
+        json={
+            "element_kind": "question",
+            "control_type": "dropdown",
+            "options": [{"label": "A"}, {"label": "B"}],
+        },
+        headers=headers,
+    ).json()
+
+    response = client.delete(f"/api/forms/{form_id}/elements/{element['id']}", headers=headers)
+    elements_response = client.get(f"/api/forms/{form_id}/elements", headers=headers)
+
+    assert response.status_code == 204
+    assert elements_response.json() == []
+
+
 def test_cannot_edit_an_archived_form(client: TestClient, make_auth_headers: AuthHeaders) -> None:
     headers = make_auth_headers(None)
     form_id = _create_form(client, headers).json()["id"]
