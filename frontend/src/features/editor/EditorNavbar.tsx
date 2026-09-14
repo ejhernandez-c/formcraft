@@ -1,4 +1,4 @@
-import { Eye, MoreVertical, Palette, Share2 } from 'lucide-react'
+import { ArrowLeft, Eye, MoreVertical, Palette, Share2 } from 'lucide-react'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
@@ -87,13 +87,16 @@ export function EditorNavbar({ form, onOpenPreview }: EditorNavbarProps) {
   return (
     <header className="border-b bg-background">
       <div className="flex items-center gap-4 px-4 py-2">
-        <Link
-          to="/"
-          className="shrink-0 text-lg font-medium"
-          aria-label={t('editor.backToDashboard')}
-        >
-          {t('app.title')}
-        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            to="/"
+            aria-label={t('editor.backToDashboard')}
+            className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <ArrowLeft aria-hidden="true" className="size-4" />
+          </Link>
+          <span className="text-lg font-medium">{t('app.title')}</span>
+        </div>
 
         <Input
           value={title}

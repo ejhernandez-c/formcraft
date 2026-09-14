@@ -1,23 +1,40 @@
-import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
+import {
+  AlignJustify,
+  AlignLeft,
+  Calendar,
+  ChevronDown,
+  ChevronDownSquare,
+  ChevronUp,
+  CircleDot,
+  Hash,
+  Mail,
+  SquareCheck,
+  Star,
+  ToggleLeft,
+  Trash2,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { ALL_CONTROLS, getControlDefinition } from '@/features/builder/controlTypes'
+import { getControlDefinition } from '@/features/builder/controlTypes'
+import type { QuestionControlType } from '@/features/builder/controlTypes'
 import { OptionsEditor } from '@/features/builder/OptionsEditor'
 import type { ElementFormValues } from '@/features/builder/propertiesForm'
 import { toApiPayload, toFormValues } from '@/features/builder/propertiesForm'
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback'
+import type { TranslationKey } from '@/i18n'
 import { t } from '@/i18n'
 import { cn } from '@/lib/utils'
 import type { FormElement, FormElementInput } from '@/services/formBuilder'
@@ -183,6 +200,36 @@ function ContentField({
   )
 }
 
+interface QuestionTypeOption {
+  controlType: QuestionControlType
+  labelKey: TranslationKey
+  icon: LucideIcon
+}
+
+// Grouped like the reference spec, but limited to the 10 control types
+// Formcraft actually supports — the spec's File upload / Linear scale /
+// grid / Time rows have no backing control_type (CLAUDE.md §17 defers
+// File Upload/Time, grids aren't in scope at all), so a creator picking
+// one would just get rejected by the backend. Not shown, not stubbed as
+// "coming soon," since none of those are on an approved roadmap phase yet.
+const QUESTION_TYPE_GROUPS: QuestionTypeOption[][] = [
+  [
+    { controlType: 'short_text', labelKey: 'builder.control.shortText', icon: AlignLeft },
+    { controlType: 'long_text', labelKey: 'builder.control.longText', icon: AlignJustify },
+    { controlType: 'number', labelKey: 'builder.control.number', icon: Hash },
+    { controlType: 'email', labelKey: 'builder.control.email', icon: Mail },
+  ],
+  [
+    { controlType: 'radio', labelKey: 'builder.control.radio', icon: CircleDot },
+    { controlType: 'checkbox', labelKey: 'builder.control.checkbox', icon: SquareCheck },
+    { controlType: 'dropdown', labelKey: 'builder.control.dropdown', icon: ChevronDownSquare },
+    { controlType: 'yes_no', labelKey: 'builder.control.yesNo', icon: ToggleLeft },
+  ],
+  [{ controlType: 'rating', labelKey: 'builder.control.rating', icon: Star }],
+  [{ controlType: 'date', labelKey: 'builder.control.date', icon: Calendar }],
+]
+const ALL_QUESTION_TYPE_OPTIONS = QUESTION_TYPE_GROUPS.flat()
+
 function QuestionTypeSelect({
   currentType,
   onSave,
@@ -190,34 +237,57 @@ function QuestionTypeSelect({
   currentType: string
   onSave: (data: FormElementInput) => void
 }) {
-  const questionControls = ALL_CONTROLS.filter((control) => control.elementKind === 'question')
+  const current = ALL_QUESTION_TYPE_OPTIONS.find((option) => option.controlType === currentType)
+  const CurrentIcon = current?.icon ?? CircleDot
+
+  function selectType(option: QuestionTypeOption): void {
+    const definition = getControlDefinition(option.controlType)
+    onSave({
+      element_kind: 'question',
+      control_type: option.controlType,
+      options: definition?.supportsOptions ? [{ label: t('builder.optionLabelPlaceholder') }] : [],
+    })
+  }
 
   return (
-    <Select
-      value={currentType}
-      onValueChange={(value) => {
-        const definition = questionControls.find((control) => control.controlType === value)
-        if (!definition) return
-        onSave({
-          element_kind: 'question',
-          control_type: definition.controlType,
-          options: definition.supportsOptions
-            ? [{ label: t('builder.optionLabelPlaceholder') }]
-            : [],
-        })
-      }}
-    >
-      <SelectTrigger className="w-40 shrink-0" aria-label={t('editor.questionPlaceholder')}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {questionControls.map((control) => (
-          <SelectItem key={control.controlType} value={control.controlType}>
-            {t(control.labelKey)}
-          </SelectItem>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-44 shrink-0 justify-between"
+            aria-label={t('editor.questionTypeLabel')}
+          />
+        }
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <CurrentIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+          <span className="truncate">
+            {current ? t(current.labelKey) : t('editor.questionTypeLabel')}
+          </span>
+        </span>
+        <ChevronDown aria-hidden="true" className="size-4 shrink-0 opacity-50" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
+        {QUESTION_TYPE_GROUPS.map((group, groupIndex) => (
+          <div key={groupIndex}>
+            {groupIndex > 0 && <DropdownMenuSeparator />}
+            {group.map((option) => (
+              <DropdownMenuItem
+                key={option.controlType}
+                onClick={() => selectType(option)}
+                className={cn(option.controlType === currentType && 'bg-primary/10')}
+              >
+                <option.icon aria-hidden="true" className="size-4 text-muted-foreground" />
+                {t(option.labelKey)}
+              </DropdownMenuItem>
+            ))}
+          </div>
         ))}
-      </SelectContent>
-    </Select>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

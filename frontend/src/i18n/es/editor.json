@@ -24,6 +24,7 @@
   "editor.deleteSectionConfirm": "¿Eliminar esta sección y todo su contenido?",
 
   "editor.questionPlaceholder": "Pregunta sin título",
+  "editor.questionTypeLabel": "Tipo de pregunta",
   "editor.moveUp": "Mover arriba",
   "editor.moveDown": "Mover abajo",
   "editor.deleteElement": "Eliminar elemento",

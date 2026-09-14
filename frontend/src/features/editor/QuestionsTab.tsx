@@ -7,6 +7,7 @@ import { defaultSettingsFor } from '@/features/builder/controlTypes'
 import { ElementCard } from '@/features/editor/ElementCard'
 import { FloatingToolbar } from '@/features/editor/FloatingToolbar'
 import { SectionHeaderCard } from '@/features/editor/SectionHeaderCard'
+import { ThemeBanner } from '@/features/editor/ThemeBanner'
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback'
 import { t } from '@/i18n'
 import type {
@@ -86,57 +87,60 @@ export function QuestionsTab({
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl gap-4 p-6">
-      <div className="flex-1 space-y-4">
-        <FormHeaderCard form={form} onSave={onSaveForm} />
+    <div>
+      <ThemeBanner theme={form.theme} />
+      <div className="mx-auto flex max-w-4xl gap-4 p-6">
+        <div className="flex-1 space-y-4">
+          <FormHeaderCard form={form} onSave={onSaveForm} />
 
-        {sections.map((section, sectionIndex) => {
-          const showSectionHeader = sections.length > 1 || Boolean(section.title)
-          return (
-            <div key={section.id} className="space-y-4">
-              {showSectionHeader && (
-                <SectionHeaderCard
-                  section={section}
-                  onSave={(data) => onSaveSection(section.id, data)}
-                  onDelete={() => onDeleteSection(section.id)}
-                />
-              )}
-              {(elementsBySection.get(section.id) ?? []).map((element, index) => (
-                <div
-                  key={element.id}
-                  onClick={() => setSelection({ kind: 'element', id: element.id })}
-                >
-                  <ElementCard
-                    element={element}
-                    isSelected={selection?.kind === 'element' && selection.id === element.id}
-                    canMoveUp={index > 0}
-                    canMoveDown={index < (elementsBySection.get(section.id)?.length ?? 0) - 1}
-                    onSelect={() => setSelection({ kind: 'element', id: element.id })}
-                    onSave={(data) => onSaveElement(element.id, data)}
-                    onDelete={() => onDeleteElement(element.id)}
-                    onMove={(direction) => onMoveElement(element, direction)}
+          {sections.map((section, sectionIndex) => {
+            const showSectionHeader = sections.length > 1 || Boolean(section.title)
+            return (
+              <div key={section.id} className="space-y-4">
+                {showSectionHeader && (
+                  <SectionHeaderCard
+                    section={section}
+                    onSave={(data) => onSaveSection(section.id, data)}
+                    onDelete={() => onDeleteSection(section.id)}
                   />
-                </div>
-              ))}
-              {sectionIndex < sections.length - 1 && (
-                <MoveSectionRow
-                  canMoveUp={sectionIndex > 0}
-                  canMoveDown={sectionIndex < sections.length - 1}
-                  onMove={(direction) => onMoveSection(section, direction)}
-                />
-              )}
-            </div>
-          )
-        })}
-      </div>
+                )}
+                {(elementsBySection.get(section.id) ?? []).map((element, index) => (
+                  <div
+                    key={element.id}
+                    onClick={() => setSelection({ kind: 'element', id: element.id })}
+                  >
+                    <ElementCard
+                      element={element}
+                      isSelected={selection?.kind === 'element' && selection.id === element.id}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < (elementsBySection.get(section.id)?.length ?? 0) - 1}
+                      onSelect={() => setSelection({ kind: 'element', id: element.id })}
+                      onSave={(data) => onSaveElement(element.id, data)}
+                      onDelete={() => onDeleteElement(element.id)}
+                      onMove={(direction) => onMoveElement(element, direction)}
+                    />
+                  </div>
+                ))}
+                {sectionIndex < sections.length - 1 && (
+                  <MoveSectionRow
+                    canMoveUp={sectionIndex > 0}
+                    canMoveDown={sectionIndex < sections.length - 1}
+                    onMove={(direction) => onMoveSection(section, direction)}
+                  />
+                )}
+              </div>
+            )
+          })}
+        </div>
 
-      <FloatingToolbar
-        disabled={!activeSectionId}
-        onAddQuestion={handleAddQuestion}
-        onAddTitleBlock={handleAddTitleBlock}
-        onAddImage={handleAddImage}
-        onAddSection={onCreateSection}
-      />
+        <FloatingToolbar
+          disabled={!activeSectionId}
+          onAddQuestion={handleAddQuestion}
+          onAddTitleBlock={handleAddTitleBlock}
+          onAddImage={handleAddImage}
+          onAddSection={onCreateSection}
+        />
+      </div>
     </div>
   )
 }
