@@ -3,6 +3,9 @@ import { ImagePlus, PlusCircle, Rows3, Type } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { t } from '@/i18n'
 
+const ANIMATED_ICON_BUTTON =
+  'transition-transform duration-150 ease-out hover:scale-110 focus-visible:scale-110'
+
 interface FloatingToolbarProps {
   onAddQuestion: () => void
   onAddTitleBlock: () => void
@@ -30,6 +33,7 @@ export function FloatingToolbar({
         size="icon-sm"
         aria-label={t('editor.toolbarAddQuestion')}
         disabled={disabled}
+        className={ANIMATED_ICON_BUTTON}
         onClick={onAddQuestion}
       >
         <PlusCircle aria-hidden="true" />
@@ -40,6 +44,7 @@ export function FloatingToolbar({
         size="icon-sm"
         aria-label={t('editor.toolbarAddTitleBlock')}
         disabled={disabled}
+        className={ANIMATED_ICON_BUTTON}
         onClick={onAddTitleBlock}
       >
         <Type aria-hidden="true" />
@@ -50,6 +55,7 @@ export function FloatingToolbar({
         size="icon-sm"
         aria-label={t('editor.toolbarAddImage')}
         disabled={disabled}
+        className={ANIMATED_ICON_BUTTON}
         onClick={onAddImage}
       >
         <ImagePlus aria-hidden="true" />
@@ -59,6 +65,7 @@ export function FloatingToolbar({
         variant="ghost"
         size="icon-sm"
         aria-label={t('editor.toolbarAddSection')}
+        className={ANIMATED_ICON_BUTTON}
         onClick={onAddSection}
       >
         <Rows3 aria-hidden="true" />

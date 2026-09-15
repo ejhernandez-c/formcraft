@@ -10,6 +10,8 @@ import { SectionHeaderCard } from '@/features/editor/SectionHeaderCard'
 import { ThemeBanner } from '@/features/editor/ThemeBanner'
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback'
 import { t } from '@/i18n'
+import { shufflePrimaryColor } from '@/lib/color'
+import { isBannerEnabled } from '@/lib/themeFlags'
 import type {
   FormElement,
   FormElementInput,
@@ -18,7 +20,8 @@ import type {
 } from '@/services/formBuilder'
 import type { FormDetail } from '@/services/forms'
 
-type Selection = { kind: 'section'; id: string } | { kind: 'element'; id: string } | null
+type Selection =
+  { kind: 'section'; id: string } | { kind: 'element'; id: string } | { kind: 'header' } | null
 
 interface QuestionsTabProps {
   form: FormDetail
@@ -26,6 +29,7 @@ interface QuestionsTabProps {
   elementsBySection: Map<string, FormElement[]>
   deletingElementId: string | null
   onSaveForm: (data: { name: string; description: string | null }) => void
+  onUpdateTheme: (theme: Record<string, unknown>) => void
   onCreateSection: () => void
   onSaveSection: (sectionId: string, data: FormSectionInput) => void
   onDeleteSection: (sectionId: string) => void
@@ -42,6 +46,7 @@ export function QuestionsTab({
   elementsBySection,
   deletingElementId,
   onSaveForm,
+  onUpdateTheme,
   onCreateSection,
   onSaveSection,
   onDeleteSection,
@@ -88,9 +93,37 @@ export function QuestionsTab({
     })
   }
 
+  function handleShuffleHeaderColor(): void {
+    const current =
+      typeof form.theme.primary_color === 'string' ? form.theme.primary_color : '#7c3aed'
+    onUpdateTheme({ ...form.theme, primary_color: shufflePrimaryColor(current) })
+  }
+
+  function handleDeleteHeader(): void {
+    if (!window.confirm(t('editor.deleteHeaderConfirm'))) return
+    onUpdateTheme({ ...form.theme, banner_enabled: false })
+    setSelection(null)
+  }
+
+  function handleChangeHeaderImage(): void {
+    // No image-upload infrastructure exists yet (deferred per CLAUDE.md
+    // §17) — an explicit "coming soon" beats a click that visibly does
+    // nothing.
+    window.alert(t('editor.headerImageComingSoon'))
+  }
+
   return (
     <div>
-      <ThemeBanner theme={form.theme} />
+      {isBannerEnabled(form.theme) && (
+        <ThemeBanner
+          theme={form.theme}
+          isSelected={selection?.kind === 'header'}
+          onSelect={() => setSelection({ kind: 'header' })}
+          onChangeImage={handleChangeHeaderImage}
+          onShuffleColor={handleShuffleHeaderColor}
+          onDeleteHeader={handleDeleteHeader}
+        />
+      )}
       <div className="mx-auto flex max-w-4xl gap-4 p-6">
         <div className="flex-1 space-y-4">
           <FormHeaderCard form={form} onSave={onSaveForm} />

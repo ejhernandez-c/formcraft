@@ -39,7 +39,15 @@
 
   "editor.themePrimaryLabel": "Color principal",
   "editor.themeSecondaryLabel": "Color secundario",
+  "editor.themeShowBannerLabel": "Mostrar encabezado",
   "editor.themeSaved": "Tema guardado",
+
+  "editor.headerBannerLabel": "Encabezado del formulario",
+  "editor.headerChangeImage": "Cambiar imagen de fondo",
+  "editor.headerImageComingSoon": "Esta función estará disponible próximamente.",
+  "editor.headerShuffleColor": "Cambiar color aleatoriamente",
+  "editor.headerDeleteBanner": "Eliminar encabezado",
+  "editor.deleteHeaderConfirm": "¿Eliminar el encabezado decorativo del formulario?",
 
   "editor.shareLinkLabel": "Enlace público",
   "editor.shareCopyButton": "Copiar enlace",

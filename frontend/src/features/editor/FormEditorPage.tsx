@@ -86,6 +86,27 @@ export function FormEditorPage() {
     onSuccess: invalidateForm,
   })
 
+  const updateThemeMutation = useMutation({
+    mutationFn: (theme: Record<string, unknown>) => {
+      const current = formQuery.data
+      if (!current) throw new Error('Form not loaded yet')
+      return updateForm(token as string, formId, {
+        name: current.name,
+        description: current.description,
+        identification_type: current.identification_type,
+        allow_multiple_responses: current.allow_multiple_responses,
+        response_limit_enabled: current.response_limit_enabled,
+        max_responses: current.max_responses,
+        one_response_per_email: current.one_response_per_email,
+        open_at: current.open_at,
+        close_at: current.close_at,
+        settings: current.settings,
+        theme,
+      })
+    },
+    onSuccess: invalidateForm,
+  })
+
   const createSectionMutation = useMutation({
     mutationFn: () => createSection(token as string, formId, {}),
     onSuccess: invalidateBuilder,
@@ -198,6 +219,7 @@ export function FormEditorPage() {
             deleteElementMutation.isPending ? (deleteElementMutation.variables ?? null) : null
           }
           onSaveForm={(data) => saveFormMutation.mutate(data)}
+          onUpdateTheme={(theme) => updateThemeMutation.mutate(theme)}
           onCreateSection={() => createSectionMutation.mutate()}
           onSaveSection={(sectionId, data) => updateSectionMutation.mutate({ sectionId, data })}
           onDeleteSection={(sectionId) => deleteSectionMutation.mutate(sectionId)}

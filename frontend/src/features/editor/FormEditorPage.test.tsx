@@ -144,4 +144,65 @@ describe('FormEditorPage', () => {
 
     await waitFor(() => expect(screen.getByText('Publicar')).toBeInTheDocument())
   })
+
+  it('deletes the header banner via its toolbar, after confirming', async () => {
+    vi.mocked(formsService.updateForm).mockResolvedValue({
+      ...FORM,
+      theme: { banner_enabled: false },
+    })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+
+    const user = userEvent.setup()
+    renderEditor()
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Encabezado del formulario')).toBeInTheDocument(),
+    )
+    await user.click(screen.getByLabelText('Encabezado del formulario'))
+    await user.click(screen.getByLabelText('Eliminar encabezado'))
+
+    expect(window.confirm).toHaveBeenCalledWith(
+      '¿Eliminar el encabezado decorativo del formulario?',
+    )
+    await waitFor(() =>
+      expect(formsService.updateForm).toHaveBeenCalledWith(
+        'valid-token',
+        'f1',
+        expect.objectContaining({ theme: expect.objectContaining({ banner_enabled: false }) }),
+      ),
+    )
+  })
+
+  it('does not delete the header banner when the confirm dialog is cancelled', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+    const user = userEvent.setup()
+    renderEditor()
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Encabezado del formulario')).toBeInTheDocument(),
+    )
+    await user.click(screen.getByLabelText('Encabezado del formulario'))
+    await user.click(screen.getByLabelText('Eliminar encabezado'))
+
+    expect(formsService.updateForm).not.toHaveBeenCalled()
+  })
+
+  it('shuffles the header color to a different preset', async () => {
+    vi.mocked(formsService.updateForm).mockResolvedValue(FORM)
+
+    const user = userEvent.setup()
+    renderEditor()
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Encabezado del formulario')).toBeInTheDocument(),
+    )
+    await user.click(screen.getByLabelText('Encabezado del formulario'))
+    await user.click(screen.getByLabelText('Cambiar color aleatoriamente'))
+
+    await waitFor(() => expect(formsService.updateForm).toHaveBeenCalled())
+    const [, , payload] = vi.mocked(formsService.updateForm).mock.calls[0]
+    expect(payload.theme?.primary_color).not.toBe('#7c3aed')
+    expect(typeof payload.theme?.primary_color).toBe('string')
+  })
 })

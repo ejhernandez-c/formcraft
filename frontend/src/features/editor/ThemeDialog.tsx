@@ -4,8 +4,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { useAuth } from '@/features/auth/AuthContext'
 import { t } from '@/i18n'
+import { isBannerEnabled } from '@/lib/themeFlags'
 import type { FormDetail } from '@/services/forms'
 import { updateForm } from '@/services/forms'
 
@@ -32,6 +34,7 @@ export function ThemeDialog({ form, open, onOpenChange }: ThemeDialogProps) {
   const [secondary, setSecondary] = useState(() =>
     colorFromTheme(form.theme, 'secondary_color', '#f3f0fc'),
   )
+  const [bannerEnabled, setBannerEnabled] = useState(() => isBannerEnabled(form.theme))
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -46,7 +49,12 @@ export function ThemeDialog({ form, open, onOpenChange }: ThemeDialogProps) {
         open_at: form.open_at,
         close_at: form.close_at,
         settings: form.settings,
-        theme: { ...form.theme, primary_color: primary, secondary_color: secondary },
+        theme: {
+          ...form.theme,
+          primary_color: primary,
+          secondary_color: secondary,
+          banner_enabled: bannerEnabled,
+        },
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['forms', form.id] })
@@ -79,6 +87,14 @@ export function ThemeDialog({ form, open, onOpenChange }: ThemeDialogProps) {
               value={secondary}
               onChange={(event) => setSecondary(event.target.value)}
               className="h-8 w-14 rounded border"
+            />
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <Label htmlFor="theme-banner-enabled">{t('editor.themeShowBannerLabel')}</Label>
+            <Switch
+              id="theme-banner-enabled"
+              checked={bannerEnabled}
+              onCheckedChange={setBannerEnabled}
             />
           </div>
           <Button
